@@ -3,4 +3,6 @@
     <string name="cycle_duration">Combien de temps ?</string>
     <string name="cycle_duration_title">Durée du cycle</string>
     <string name="end_hour_title">Heure d\'arrêt</string>
+    <string name="calculate">calculate</string>
+    <string name="retry">retry</string>
 </resources>

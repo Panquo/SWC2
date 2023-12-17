@@ -5,6 +5,7 @@ import android.app.TimePickerDialog.OnTimeSetListener
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.TextView
 import androidx.annotation.RequiresApi
@@ -15,27 +16,27 @@ import nl.dionsegijn.konfetti.core.Party
 import nl.dionsegijn.konfetti.core.Position
 import nl.dionsegijn.konfetti.core.emitter.Emitter
 import nl.dionsegijn.konfetti.xml.KonfettiView
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.ZoneOffset
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
 
-    var hour = 0;
-    var minute = 0;
+    private lateinit var cycleLayout: ConstraintLayout
+    private lateinit var endLayout: ConstraintLayout
+    private lateinit var resultLayout: ConstraintLayout
 
+    private lateinit var cycleDuration: TextView
+    private lateinit var endHour: TextView
+    private lateinit var result: TextView
 
-    lateinit var cycleLayout: ConstraintLayout;
-    lateinit var endLayout: ConstraintLayout;
-    lateinit var resultLayout: ConstraintLayout
-
-    lateinit var cycleDuration: TextView;
-    lateinit var endHour: TextView;
-    lateinit var result: TextView
-
-    lateinit var button: AppCompatButton
-    lateinit var konfetti: KonfettiView
+    private lateinit var button: AppCompatButton
+    private lateinit var konfetti: KonfettiView
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,8 +64,8 @@ class MainActivity : AppCompatActivity() {
                 calculResult()
             }else{
                 resultLayout.visibility=View.GONE
-                button.text = "calculate"
-                konfetti.reset();
+                button.text = getString(R.string.calculate)
+                konfetti.reset()
             }
         }
 
@@ -94,7 +95,14 @@ class MainActivity : AppCompatActivity() {
         }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun getMinutesDif(fromDate: LocalTime, toDate: LocalTime): Long {
+    fun getMinutesDif(fromDate: ZonedDateTime, toTime: LocalTime): Long {
+        var toDate: ZonedDateTime = ZonedDateTime.of(LocalDateTime.of(LocalDate.now(),toTime),ZoneId.of("Europe/Paris"))
+        if(fromDate>toDate){
+            toDate = toDate.plusDays(1)
+        }
+        Log.d("from",fromDate.toString())
+        Log.d("to",toDate.toString())
+        Log.d("result",ChronoUnit.MINUTES.between(fromDate, toDate).toString())
         return ChronoUnit.MINUTES.between(fromDate, toDate)
     }
     @RequiresApi(Build.VERSION_CODES.O)
@@ -103,22 +111,23 @@ class MainActivity : AppCompatActivity() {
             val cycles = cycleDuration.text.toString().split(':')
             val end = endHour.text.toString()
             val t2 = LocalTime.parse(end).minus(cycles[0].toLong()*60+cycles[1].toLong(),ChronoUnit.MINUTES)
-
-            var diff = getMinutesDif(LocalTime.now().atOffset(ZoneOffset.UTC)
-                .withOffsetSameInstant(ZoneOffset.of("+02:00")).toLocalTime(),t2)
+            var diff = getMinutesDif(Instant.now().atZone(ZoneId.of("Europe/Paris")),t2)
+            Log.d("diff1",diff.toString())
             if(diff<0){
                 diff+=1440
             }
+            Log.d("cycles",cycles.toString())
+            Log.d("end",end)
+            Log.d("t2",t2.toString())
+            Log.d("diff2",diff.toString())
             var min_res = diff%60
             val hs_res = (diff/60).toInt()
+            Log.d("min",min_res.toString())
+            Log.d("hs",hs_res.toString())
 
-            if(min_res>=45)
-                min_res=45
-                else if(min_res>=30)
-                min_res=30
-            else if(min_res>=15)
-                min_res=15
-            else min_res=0
+            min_res = if(min_res>=30)
+                30
+            else 0
 
             val party = Party(
                 speed = 0f,
@@ -130,12 +139,12 @@ class MainActivity : AppCompatActivity() {
                 emitter = Emitter(duration = 200, TimeUnit.MILLISECONDS).max(100),
                 position = Position.Relative(0.5, 0.93)
             )
-            val mp = MediaPlayer.create(this, R.raw.party);
+            val mp = MediaPlayer.create(this, R.raw.party)
             mp.start()
 
             konfetti.start(party)
             resultLayout.visibility= View.VISIBLE
-            button.text = "retry"
+            button.text = getString(R.string.retry)
             result.text= String.format("%02d:%02d",hs_res,min_res)
         }
 
