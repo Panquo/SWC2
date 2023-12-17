@@ -84,12 +84,12 @@ class MainActivity : AppCompatActivity() {
 
     }
     private val endTimePickerListener =
-        OnTimeSetListener { view, hourOfDay, minutes ->
+        OnTimeSetListener { _, hourOfDay, minutes ->
             endHour.visibility = View.VISIBLE
             endHour.text = String.format("%02d:%02d",hourOfDay,minutes)
         }
     private val cycleTimePickerListener =
-        OnTimeSetListener { view, hourOfDay, minutes ->
+        OnTimeSetListener { _, hourOfDay, minutes ->
             cycleDuration.visibility = View.VISIBLE
             cycleDuration.text = String.format("%02d:%02d",hourOfDay,minutes)
         }
@@ -120,12 +120,12 @@ class MainActivity : AppCompatActivity() {
             Log.d("end",end)
             Log.d("t2",t2.toString())
             Log.d("diff2",diff.toString())
-            var min_res = diff%60
-            val hs_res = (diff/60).toInt()
-            Log.d("min",min_res.toString())
-            Log.d("hs",hs_res.toString())
+            var min = diff%60
+            val hs = (diff/60).toInt()
+            Log.d("min",min.toString())
+            Log.d("hs",hs.toString())
 
-            min_res = if(min_res>=30)
+            min = if(min>=30)
                 30
             else 0
 
@@ -145,7 +145,7 @@ class MainActivity : AppCompatActivity() {
             konfetti.start(party)
             resultLayout.visibility= View.VISIBLE
             button.text = getString(R.string.retry)
-            result.text= String.format("%02d:%02d",hs_res,min_res)
+            result.text= String.format("%02d:%02d",hs,min)
         }
 
 
